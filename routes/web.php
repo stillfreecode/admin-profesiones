@@ -22,4 +22,4 @@ Route::get('/usuarios',[UserController::class,'index'])->name('users.index');
 
 Route::get('/usuarios/nuevo', [UserController::class, 'create'])->name('users.create');
 
-Route::post('/usuarios/crear', [UserController::class, 'store']);
+Route::post('/usuarios/', [UserController::class, 'store']);

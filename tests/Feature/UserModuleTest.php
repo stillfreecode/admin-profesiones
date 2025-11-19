@@ -10,34 +10,7 @@ use App\Models\Profession;
 class UserModuleTest extends TestCase
 {
     use RefreshDatabase;
-    /** @test */
-    public function test_probar_ruta_uno(): void
-    {
-        $response = $this->get('/ruta1');
-
-        $response->assertStatus(200);
-        $response->assertSee('Cadena de la ruta 1');
-    }
-
-    /** @test */
-    /* public function test_details_page(): void
-    {
-        $response = $this->get('/usuarios/10');
-
-        $response->assertStatus(200);
-        $response->assertSee('Mostrando detalle del usuario: 10');
-    }*/
-
-    /** @test */
-    public function test_new_users_page(): void
-    {
-        $response = $this->get('/usuarios/nuevo');
-
-        $response->assertStatus(200);
-        $response->assertSee('Creando un usuario nuevo');
-    }
-
-    /** @test */
+ 
     public function test_usuarios(): void
     {
         $response = $this->get('/usuarios');
@@ -97,5 +70,27 @@ class UserModuleTest extends TestCase
         $this->get('usuarios/999')
             ->assertStatus(404)
             ->assertSee('Pagina no encontrada');
+    }
+
+    function test_it_load_the_new_users_page(): void
+    {
+        $this->get('/usuarios/nuevo')
+            ->assertStatus(200)
+            ->assertSee('Crear usuario');
+    }
+
+    function test_it_creates_a_new_user(){
+        $this->withoutExceptionHandling();
+        $this->post('/usuarios/', [
+            'name' => 'usuario20',
+            'email' => 'usuario20@mail.com',
+            'password' => '12345',
+            'profession_id' => '3',
+        ])->assertRedirect('usuarios');
+        $this->assertDatabaseHas('users',[
+            'name' => 'usuario20',
+            'email' => 'usuario20@mail.com',
+            // 'password' => '12345',
+        ]);
     }
 }

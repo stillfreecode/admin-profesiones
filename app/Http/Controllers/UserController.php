@@ -3,6 +3,7 @@
 namespace App\Http\Controllers; // Define el espacio de nombres, ubicando el archivo dentro de la estructura de controladores.
 use Illuminate\Http\Request; // Importa la clase Request para manejar peticiones HTTP, aunque no se use en estos métodos.
 use \App\Models\User;
+use \App\Models\Profession;
 
 class UserController extends Controller // Define la clase UserController, que hereda funcionalidades del Controller base de Laravel.
 
@@ -37,7 +38,16 @@ class UserController extends Controller // Define la clase UserController, que h
 
     public function store()
     {
-        return 'Procesando informacion...';
+        Profession::create(['title' => 'FullStack-Developer',]);
+        $data = request() ->all();
+        //dd($data);
+        User::create([
+        'name'=>$data['name'],
+        'email'=>$data['email'],
+        'password'=>bcrypt($data['password']),
+        'profession_id'=>$data['profession_id'],
+        ]);
+        return redirect()->route(('users.index'));
     }
 
     public function create()
