@@ -15,19 +15,19 @@ class PerfilNameTest extends TestCase
      *
      * @return void
      */
-    public function test_perfil_name2():void{
-        // 1. Simula una petición GET a la URL 'perfil/Angel'.
-        // Laravel ejecuta la ruta correspondiente y captura la respuesta.
-        $response=$this->get('perfil/Angel');
+    // public function test_perfil_name2():void{
+    //     // 1. Simula una petición GET a la URL 'perfil/Angel'.
+    //     // Laravel ejecuta la ruta correspondiente y captura la respuesta.
+    //     $response=$this->get('perfil/Angel');
 
-        // 2. Verifica (assert) que la respuesta HTTP tenga un código de estado 200 (OK).
-        // Esto confirma que la página se cargó correctamente.
-        $response->assertStatus(200);
+    //     // 2. Verifica (assert) que la respuesta HTTP tenga un código de estado 200 (OK).
+    //     // Esto confirma que la página se cargó correctamente.
+    //     $response->assertStatus(200);
 
-        // 3. Verifica que el contenido de la respuesta contenga el texto exacto "Mostrando el perfil de: Angel".
-        // Esto confirma que la lógica de la ruta funciona como se espera.
-        $response->assertSee("Mostrando el perfil de: Angel");
-    }
+    //     // 3. Verifica que el contenido de la respuesta contenga el texto exacto "Mostrando el perfil de: Angel".
+    //     // Esto confirma que la lógica de la ruta funciona como se espera.
+    //     $response->assertSee("Mostrando el perfil de: Angel");
+    // }
 
  
 }

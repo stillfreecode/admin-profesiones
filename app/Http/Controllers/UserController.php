@@ -38,14 +38,25 @@ class UserController extends Controller // Define la clase UserController, que h
 
     public function store()
     {
-        Profession::create(['title' => 'FullStack-Developer',]);
-        $data = request() ->all();
+        // Profession::create(['title' => 'FullStack-Developer',]);
+        $data = request()->validate(
+            // 1. Array de reglas 
+            [
+                'name' => 'required',
+                'email' => ['required', 'email', 'unique:users,email'],
+                'password' => 'required',
+            ], 
+            // 2. Array de mensajes
+            [
+                'name.required' => 'El campo nombre es obligatorio',
+            ]
+        );
         //dd($data);
         User::create([
         'name'=>$data['name'],
         'email'=>$data['email'],
         'password'=>bcrypt($data['password']),
-        'profession_id'=>$data['profession_id'],
+        //'profession_id'=>$data['profession_id'],
         ]);
         return redirect()->route(('users.index'));
     }
