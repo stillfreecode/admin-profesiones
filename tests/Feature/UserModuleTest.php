@@ -157,4 +157,17 @@ class UserModuleTest extends TestCase
             ->assertSessionHasErrors(['email']);
         $this->assertEquals(1, User::count());
     }
+
+    function test_the_password_is_required()
+    {
+         $this->from('/usuarios/nuevo')
+            ->post('/usuarios/', [
+                'name' => 'Sultano',
+                'email' => 'Sultano@gmail.com',
+                'password' => ''
+    ])
+            ->assertRedirect('usuarios/nuevo')
+            ->assertSessionHasErrors(['password']);
+        $this->assertEquals(0, User::count());
+    }
 }

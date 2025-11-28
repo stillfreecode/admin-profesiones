@@ -25,9 +25,14 @@
     <br>
     <label for="email">Correo Electronico</label>
     <input type="email" name="email" placeholder="email" value="nombre@mail.com">
-    <br>
+    @if($errors->has('email'))
+    <p>{{$errors->first('email')}}</p>
+    @endif
     <label for="password">Contraseña</label>
     <input type="password" name="password" id="password" placeholder="Mayor a 6 caracteres">
+    @if($errors->has('password'))
+    <p>{{$errors->first('password')}}</p>
+    @endif
     <br>
     <button type="submit">Crear Usuario</button>
 </form>

@@ -49,6 +49,8 @@ class UserController extends Controller // Define la clase UserController, que h
             // 2. Array de mensajes
             [
                 'name.required' => 'El campo nombre es obligatorio',
+                'password.required' => 'El campo contraseña es obligatorio',
+                'email.required' => 'El campo email es obligatorio',
             ]
         );
         //dd($data);
