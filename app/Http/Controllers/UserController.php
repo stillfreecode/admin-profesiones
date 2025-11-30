@@ -45,7 +45,7 @@ class UserController extends Controller // Define la clase UserController, que h
                 'name' => 'required',
                 'email' => ['required', 'email', 'unique:users,email'],
                 'password' => 'required',
-            ], 
+            ],
             // 2. Array de mensajes
             [
                 'name.required' => 'El campo nombre es obligatorio',
@@ -55,12 +55,47 @@ class UserController extends Controller // Define la clase UserController, que h
         );
         //dd($data);
         User::create([
-        'name'=>$data['name'],
-        'email'=>$data['email'],
-        'password'=>bcrypt($data['password']),
-        //'profession_id'=>$data['profession_id'],
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
+            //'profession_id'=>$data['profession_id'],
         ]);
         return redirect()->route(('users.index'));
+    }
+    public function update(User $user)
+    {
+       
+        $data = request()->validate([
+            'name' => 'required',
+            'email' => ['required', 'email', 'unique:users,email,' . $user->id],
+            'password' => '', 
+        ]);
+
+   
+        if ($data['password'] != null) {
+            $data['password'] = bcrypt($data['password']);
+        } else {
+       
+          
+            unset($data['password']);
+        }
+
+       
+        $user->update($data);
+
+        
+        return redirect()->route('users.show', ['user' => $user]);
+    }
+
+    public function destroy(User $user)
+    {
+        $user->delete();
+        return redirect()->route('users.index');
+    }
+
+    public function edit(User $user)
+    {
+        return view('users.edit', ['user' => $user]);
     }
 
     public function create()

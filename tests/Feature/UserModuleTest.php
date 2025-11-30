@@ -170,4 +170,63 @@ class UserModuleTest extends TestCase
             ->assertSessionHasErrors(['password']);
         $this->assertEquals(0, User::count());
     }
+
+    function test_it_loads_the_edit_user_page(){
+        $this->withoutExceptionHandling();
+        $user = User::factory()->create([
+                'name' => 'user300',
+                'email' => 'user30000@mail.com',
+                'profession_id' => null,
+            ]);
+        $this->get("/usuarios/{$user->id}/editar") // usuarios/5/editar
+        ->assertStatus(200)
+        ->assertViewIs('users.edit')
+        ->assertSee('Editar usuario')
+        ->assertViewHas('user', function($viewUser) use ($user) {
+         return $viewUser->id === $user->id;   
+        }); 
+}
+
+function test_it_updates_a_user()
+{
+    //Crear un usuario inicial (Datos viejos)
+    $user = \App\Models\User::factory()->create([
+        'name' => 'Nombre Viejo',
+        'email' => 'viejo@mail.com',
+        'profession_id' => null,
+    ]);
+
+    //Enviar petición PUT a la ruta de actualización con DATOS NUEVOS
+    $this->put("/usuarios/{$user->id}", [
+        'name' => 'Nombre Nuevo',
+        'email' => 'nuevo@mail.com',
+        'password' => '12345678'
+    ])
+    ->assertRedirect("/usuarios/{$user->id}"); // Esperamos que redirija al detalle
+
+    //Verificar que en la base de datos el nombre cambió
+    $this->assertDatabaseHas('users', [
+        'email' => 'nuevo@mail.com',
+        'name' => 'Nombre Nuevo' // Verificamos que se guardó el cambio
+    ]);
+    
+    //Verificar que los datos viejos YA NO existen
+    $this->assertDatabaseMissing('users', [
+        'email' => 'viejo@mail.com',
+    ]);
+}
+
+function test_it_deletes_a_user()
+{
+    $user = \App\Models\User::factory()->create([
+        'profession_id' => null
+    ]);
+
+    $this->delete("/usuarios/{$user->id}")
+        ->assertRedirect('usuarios'); 
+
+    $this->assertDatabaseMissing('users', [
+        'id' => $user->id
+    ]);
+}
 }

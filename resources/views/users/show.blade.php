@@ -11,4 +11,11 @@
     <a href="{{ route('users.index')}}">
         Regresar al listado de usuarios</a>
 </p>
+
+<form action="{{ route('users.destroy', $user) }}" method="POST">
+    {{ csrf_field() }}
+    {{ method_field('DELETE') }} {{-- o @method('DELETE') --}}
+    
+    <button type="submit">Eliminar usuario</button>
+</form>
 @endsection
