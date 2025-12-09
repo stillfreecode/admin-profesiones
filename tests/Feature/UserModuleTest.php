@@ -160,73 +160,176 @@ class UserModuleTest extends TestCase
 
     function test_the_password_is_required()
     {
-         $this->from('/usuarios/nuevo')
+        $this->from('/usuarios/nuevo')
             ->post('/usuarios/', [
                 'name' => 'Sultano',
                 'email' => 'Sultano@gmail.com',
                 'password' => ''
-    ])
+            ])
             ->assertRedirect('usuarios/nuevo')
             ->assertSessionHasErrors(['password']);
         $this->assertEquals(0, User::count());
     }
 
-    function test_it_loads_the_edit_user_page(){
+    function test_it_loads_the_edit_user_page()
+    {
         $this->withoutExceptionHandling();
         $user = User::factory()->create([
-                'name' => 'user300',
-                'email' => 'user30000@mail.com',
-                'profession_id' => null,
-            ]);
+            'name' => 'user300',
+            'email' => 'user30000@mail.com',
+            'profession_id' => null,
+        ]);
         $this->get("/usuarios/{$user->id}/editar") // usuarios/5/editar
-        ->assertStatus(200)
-        ->assertViewIs('users.edit')
-        ->assertSee('Editar usuario')
-        ->assertViewHas('user', function($viewUser) use ($user) {
-         return $viewUser->id === $user->id;   
-        }); 
-}
+            ->assertStatus(200)
+            ->assertViewIs('users.edit')
+            ->assertSee('Editar usuario')
+            ->assertViewHas('user', function ($viewUser) use ($user) {
+                return $viewUser->id === $user->id;
+            });
+    }
 
-function test_it_updates_a_user()
+    function test_it_updates_a_user()
+    {
+        //Crear un usuario inicial (Datos viejos)
+        $user = \App\Models\User::factory()->create([
+            'name' => 'Nombre Viejo',
+            'email' => 'viejo@mail.com',
+            'profession_id' => null,
+        ]);
+
+        //Enviar petición PUT a la ruta de actualización con DATOS NUEVOS
+        $this->put("/usuarios/{$user->id}", [
+            'name' => 'Nombre Nuevo',
+            'email' => 'nuevo@mail.com',
+            'password' => '12345678'
+        ])
+            ->assertRedirect("/usuarios/{$user->id}"); // Esperamos que redirija al detalle
+
+        //Verificar que en la base de datos el nombre cambió
+        $this->assertDatabaseHas('users', [
+            'email' => 'nuevo@mail.com',
+            'name' => 'Nombre Nuevo' // Verificamos que se guardó el cambio
+        ]);
+
+        //Verificar que los datos viejos YA NO existen
+        $this->assertDatabaseMissing('users', [
+            'email' => 'viejo@mail.com',
+        ]);
+    }
+
+    function test_it_deletes_a_user()
+    {
+        $user = \App\Models\User::factory()->create([
+            'email' => 'user2048@mail.com',
+            'profession_id' => null
+        ]);
+
+        $this->delete("/usuarios/{$user->id}")
+            ->assertRedirect('usuarios');
+        $this->assertDatabaseMissing('users', [
+            'id' => $user->id
+        ]);
+    }
+
+    function test_the_password_is_optional_when_updating_the_user()
 {
-    //Crear un usuario inicial (Datos viejos)
-    $user = \App\Models\User::factory()->create([
-        'name' => 'Nombre Viejo',
-        'email' => 'viejo@mail.com',
+    // Crear usuario con contraseña conocida
+    $user = User::factory()->create([
+        'name' => 'Original',
+        'email' => 'original@mail.com',
+        'password' => bcrypt('mi-pass'),
         'profession_id' => null,
     ]);
 
-    //Enviar petición PUT a la ruta de actualización con DATOS NUEVOS
+    // Guardamos la contraseña encriptada para compararla después
+    $oldPassword = $user->password;
+
+    // Enviar actualización SIN contraseña
     $this->put("/usuarios/{$user->id}", [
-        'name' => 'Nombre Nuevo',
+        'name' => 'Nuevo Nombre',
         'email' => 'nuevo@mail.com',
-        'password' => '12345678'
+        'password' => ''   
     ])
-    ->assertRedirect("/usuarios/{$user->id}"); // Esperamos que redirija al detalle
+    ->assertRedirect("/usuarios/{$user->id}");
 
-    //Verificar que en la base de datos el nombre cambió
-    $this->assertDatabaseHas('users', [
-        'email' => 'nuevo@mail.com',
-        'name' => 'Nombre Nuevo' // Verificamos que se guardó el cambio
-    ]);
-    
-    //Verificar que los datos viejos YA NO existen
-    $this->assertDatabaseMissing('users', [
-        'email' => 'viejo@mail.com',
-    ]);
+    // Refrescamos datos desde DB
+    $user->refresh();
+
+    // Verificar que SÍ cambió el nombre
+    $this->assertEquals('Nuevo Nombre', $user->name);
+    $this->assertEquals('nuevo@mail.com', $user->email);
+
+    // Verificar que la contraseña SIGUE siendo la misma
+    $this->assertEquals($oldPassword, $user->password);
 }
 
-function test_it_deletes_a_user()
+public function test_the_email_must_be_unique_when_updating_a_user()
 {
-    $user = \App\Models\User::factory()->create([
-        'profession_id' => null
+    // Usuario existente en la base
+    $existingUser = User::factory()->create([
+        'email' => 'registrado@mail.com',
+        'profession_id' => null,
     ]);
 
-    $this->delete("/usuarios/{$user->id}")
-        ->assertRedirect('usuarios'); 
+    // Usuario que intentará usar el mismo correo al actualizar
+    $userToUpdate = User::factory()->create([
+        'email' => 'original@mail.com',
+        'profession_id' => null,
+    ]);
 
-    $this->assertDatabaseMissing('users', [
-        'id' => $user->id
+    // Intentar actualizar con el email ya registrado
+    $this->from("/usuarios/{$userToUpdate->id}/editar")
+        ->put("/usuarios/{$userToUpdate->id}", [
+            'name' => 'Usuario Cambiado',
+            'email' => 'registrado@mail.com', 
+            'password' => ''
+        ])
+        ->assertRedirect("/usuarios/{$userToUpdate->id}/editar")
+        ->assertSessionHasErrors(['email']);
+
+    // Asegura que el usuario no fue actualizado
+    $this->assertDatabaseHas('users', [
+        'id' => $userToUpdate->id,
+        'email' => 'original@mail.com',
     ]);
 }
+
+function test_the_password_is_required_when_updating_the_user()
+{
+    $user = User::factory()->create([
+        'profession_id' => null,
+    ]);
+
+    $this -> from("usuarios/{$user->id}/editar")
+        -> put("/usuarios/{$user->id}", [
+            'name' => 'NewUser900',
+            'email' => 'NewUser900@mail.com',
+            'password' => ''
+        ])
+        -> assertRedirect("usuarios/{$user->id}/editar")
+        -> assertSessionHasErrors(['password']);
+
+         $this->assertDatabaseMissing('users', [
+            'email' =>  'NewUser900@gmail.com'     ]);
+}
+
+   function test_the_users_email_can_stay_the_same_when_updating_the_user(){
+    $user = User::factory()->create([
+        'name'=>'user1024',
+        'email'=>'user1024@mail.com',
+        'profession_id'=>null,
+    ]);
+
+    $this->from("usuarios/{$user->id}/editar")
+    ->put("/usuarios/{$user->id}",[
+    'name'=>'NewUser1024',
+    'email'=>'user1024@mail.com',
+    'password'=>'12345678',
+    ]
+    )
+
+    ->assertRedirect("usuarios/{$user->id}",);
+    $this->assertDatabaseMissing('users',
+    ['name'=>'user1024', ]);
+   }
 }

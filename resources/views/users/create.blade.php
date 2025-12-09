@@ -28,6 +28,7 @@
     @if($errors->has('email'))
     <p>{{$errors->first('email')}}</p>
     @endif
+       <br>
     <label for="password">Contraseña</label>
     <input type="password" name="password" id="password" placeholder="Mayor a 6 caracteres">
     @if($errors->has('password'))

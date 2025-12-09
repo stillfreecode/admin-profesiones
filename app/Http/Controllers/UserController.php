@@ -4,7 +4,7 @@ namespace App\Http\Controllers; // Define el espacio de nombres, ubicando el arc
 use Illuminate\Http\Request; // Importa la clase Request para manejar peticiones HTTP, aunque no se use en estos métodos.
 use \App\Models\User;
 use \App\Models\Profession;
-
+use Illuminate\Validation\Rule;
 class UserController extends Controller // Define la clase UserController, que hereda funcionalidades del Controller base de Laravel.
 
 {
